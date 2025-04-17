@@ -1,8 +1,10 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import pickle
 import pandas as pd
 from tensorflow.keras.models import load_model
+
 
 # Load preprocessing objects
 with open('model/preprocessing.pkl', 'rb') as f:
@@ -19,6 +21,15 @@ model = load_model('model/loan_default_model.keras')
 
 # Initialize FastAPI app
 app = FastAPI()
+
+# Initialize CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Define request model using Pydantic
 class LoanApplication(BaseModel):
@@ -68,8 +79,9 @@ def predict_default(input_data):
     }
 
 # API Endpoint
-@app.post('/predict')
+@app.post('/api/predict')
 def predict(application: LoanApplication):
+    print(application);
     result = predict_default(application)
     return {
         'status': 'success',
